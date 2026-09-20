@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    color: #0f172a;
+    background-color: #f8fafc;
+    letter-spacing: -0.015em;
+  }
+
+  body {
+    @apply antialiased text-slate-800 bg-slate-50 selection:bg-emerald-600 selection:text-white overflow-x-hidden;
+  }
+}
+
+@layer utilities {
+  .font-hindi {
+    font-family: 'Noto Sans Devanagari', system-ui, sans-serif;
+  }
+
+  .clean-card {
+    @apply bg-white border border-slate-200/80 rounded-3xl shadow-xs;
+  }
+
+  .clean-card-hover {
+    @apply bg-white border border-slate-200/80 rounded-3xl shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200;
+  }
+
+  .clean-input {
+    @apply bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-colors;
+  }
+
+  .clean-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium border;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+}
+
+/* Minimalist scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
