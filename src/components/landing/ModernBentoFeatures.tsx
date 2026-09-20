@@ -15,7 +15,7 @@ import { TiltCard3D } from '../ui/TiltCard3D';
 import { IconPlate } from '../ui/IconPlate';
 
 export const ModernBentoFeatures: React.FC = () => {
-  const { setActiveTab } = useApp();
+  const { setActiveTab, impactStats } = useApp();
   const [liveHash, setLiveHash] = useState('0x8f2b3e41a998c772e0d49f61b0c8d76211e4a307');
 
   useEffect(() => {
@@ -207,8 +207,8 @@ export const ModernBentoFeatures: React.FC = () => {
 
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs space-y-1 font-mono">
                   <div className="flex justify-between text-slate-500">
-                    <span>EPR Credits Minted:</span>
-                    <span className="text-indigo-700 font-bold">5,140 Tons</span>
+                    <span>EPR Output Audited:</span>
+                    <span className="text-indigo-700 font-bold">{impactStats.totalWasteRecoveredKg.toLocaleString('en-IN')} kg</span>
                   </div>
                   <div className="flex justify-between text-slate-500">
                     <span>Audit Status:</span>

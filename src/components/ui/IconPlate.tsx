@@ -97,3 +97,4 @@ export const IconPlate: React.FC<IconPlateProps> = ({
     </motion.div>
   );
 };
+

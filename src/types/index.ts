@@ -172,5 +172,8 @@ export interface ImpactStats {
   totalCollectorEarningsRupees: number;
   landfillVolumeSavedM3: number;
   treesEquivalentSaved: number;
+  totalPickupsCompleted?: number;
+  totalPcrPelletsSuppliedKg?: number;
+  activeWardsCovered?: number;
 }
 

@@ -35,17 +35,36 @@ const STREAM_EVENTS: MiniEvent[] = [
 ];
 
 export const LiveTelemetryPreview: React.FC = () => {
-  const { setActiveTab } = useApp();
+  const { setActiveTab, pickups, impactStats } = useApp();
   const [activeIdx, setActiveIdx] = useState(0);
 
+  const streamEvents: MiniEvent[] = pickups.slice(0, 5).map((p, idx) => ({
+    id: p.id,
+    time: idx === 0 ? 'Just now' : `${(idx + 1) * 3}m ago`,
+    ward: p.ward,
+    material: p.items[0]?.categoryName || 'Segregated Clean Scrap',
+    weight: p.actualWeightKg || p.totalEstimatedKg,
+    payout: p.actualPaidAmount || p.totalEstimatedValue,
+    hub: p.assignedCollectorName ? `${p.assignedCollectorName} (e-Loader)` : 'NDMC MRF Hub'
+  }));
+
   useEffect(() => {
+    if (streamEvents.length === 0) return;
     const timer = setInterval(() => {
-      setActiveIdx((prev) => (prev + 1) % STREAM_EVENTS.length);
+      setActiveIdx((prev) => (prev + 1) % streamEvents.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [streamEvents.length]);
 
-  const currentEvent = STREAM_EVENTS[activeIdx];
+  const currentEvent = streamEvents[activeIdx] || streamEvents[0] || {
+    id: 'KC-2026-004821',
+    time: 'Just now',
+    ward: 'Ward 31 (Barakhamba)',
+    material: 'PET Flakes (rPET)',
+    weight: 28.5,
+    payout: 684,
+    hub: 'Pragati Maidan MRF'
+  };
 
   return (
     <section className="py-16 bg-slate-900 text-white border-b border-slate-800 relative overflow-hidden">
@@ -207,13 +226,13 @@ export const LiveTelemetryPreview: React.FC = () => {
               </div>
               <div>
                 <div className="text-2xl font-black text-white font-mono">
-                  4,892.4 <span className="text-xs font-normal text-slate-400 font-sans">kg</span>
+                  {impactStats.totalWasteRecoveredKg.toFixed(1)} <span className="text-xs font-normal text-slate-400 font-sans">kg</span>
                 </div>
                 <div className="text-xs font-semibold text-slate-300 mt-0.5">
-                  Landfill Diverted Today
+                  Verified Landfill Diversion
                 </div>
                 <div className="text-[11px] text-slate-500 font-mono mt-1">
-                  Across 324 calibrated digital scales
+                  Real-time doorstep scale logs
                 </div>
               </div>
             </div>
@@ -252,18 +271,18 @@ export const LiveTelemetryPreview: React.FC = () => {
                   size="md" 
                 />
                 <span className="text-[10px] font-mono text-amber-400 uppercase bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                  Zero Deductions
+                  Direct Settlement
                 </span>
               </div>
               <div>
                 <div className="text-2xl font-black text-white font-mono">
-                  100%
+                  ₹{impactStats.totalCollectorEarningsRupees.toLocaleString('en-IN')}
                 </div>
                 <div className="text-xs font-semibold text-slate-300 mt-0.5">
-                  Direct Jan-Dhan Payout
+                  Paid Directly via UPI
                 </div>
                 <div className="text-[11px] text-slate-500 font-mono mt-1">
-                  0% platform cuts on doorstep scrap
+                  Instant settlement to citizens
                 </div>
               </div>
             </div>
@@ -277,15 +296,15 @@ export const LiveTelemetryPreview: React.FC = () => {
                   size="md" 
                 />
                 <span className="text-[10px] font-mono text-indigo-400 uppercase bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                  Industrial
+                  Circularity
                 </span>
               </div>
               <div>
                 <div className="text-2xl font-black text-white font-mono">
-                  14 Bales
+                  {impactStats.totalPickupsCompleted ?? 0} Batches
                 </div>
                 <div className="text-xs font-semibold text-slate-300 mt-0.5">
-                  CPCB Recycler Dispatches
+                  Delivered to SPCB Reprocessors
                 </div>
                 <div className="text-[11px] text-slate-500 font-mono mt-1">
                   Secondary polymer & metal feedstock
@@ -301,3 +320,4 @@ export const LiveTelemetryPreview: React.FC = () => {
     </section>
   );
 };
+

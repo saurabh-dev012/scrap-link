@@ -8,13 +8,13 @@
   html {
     scroll-behavior: smooth;
     font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
-    color: #0f172a;
-    background-color: #f8fafc;
-    letter-spacing: -0.015em;
+    color: #173d35;
+    background-color: #f7f7f2;
+    letter-spacing: -0.01em;
   }
 
   body {
-    @apply antialiased text-slate-800 bg-slate-50 selection:bg-emerald-600 selection:text-white overflow-x-hidden;
+    @apply antialiased text-slate-800 bg-[#f7f7f2] selection:bg-[#173d35] selection:text-white overflow-x-hidden;
   }
 }
 
@@ -24,15 +24,15 @@
   }
 
   .clean-card {
-    @apply bg-white border border-slate-200/80 rounded-3xl shadow-xs;
+    @apply bg-white border border-[#dfe5dc] rounded-2xl shadow-xs;
   }
 
   .clean-card-hover {
-    @apply bg-white border border-slate-200/80 rounded-3xl shadow-xs hover:border-slate-300 hover:shadow-md transition-all duration-200;
+    @apply bg-white border border-[#dfe5dc] rounded-2xl shadow-xs hover:border-[#b9c9b8] hover:shadow-md transition-all duration-200;
   }
 
   .clean-input {
-    @apply bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition-colors;
+    @apply bg-white border border-[#cdd7cb] rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-[#5b7c67] focus:ring-1 focus:ring-[#5b7c67] transition-colors;
   }
 
   .clean-badge {

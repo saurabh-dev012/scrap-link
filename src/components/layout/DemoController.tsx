@@ -31,6 +31,7 @@ export const DemoController: React.FC = () => {
     { num: 2, title: 'Collector Acceptance', desc: 'Nearby partner accepts route' },
     { num: 3, title: 'Weigh & Pay (IoT)', desc: 'Scale verified & UPI payout' },
     { num: 4, title: 'Recycler & EPR', desc: 'Batch intake & CPCB certificate' },
+    { num: 5, title: 'Impact Dashboard', desc: 'Real-time circularity counters' },
     { num: 5, title: 'Telemetry Hub', desc: 'Live operational recovery & scales' },
   ];
 

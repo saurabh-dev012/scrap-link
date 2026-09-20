@@ -23,7 +23,7 @@ export const DigitalIdentityCard: React.FC = () => {
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const verificationUrl = `https://kabadiwalaconnect.org/verify/collector/${activeCollector.id}`;
+  const verificationUrl = `https://scraplink.app/verify/collector/${activeCollector.id}`;
 
   const handleShare = () => {
     navigator.clipboard?.writeText(verificationUrl);
@@ -274,4 +274,3 @@ export const DigitalIdentityCard: React.FC = () => {
     </div>
   );
 };
-

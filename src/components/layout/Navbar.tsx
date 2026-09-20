@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Recycle, 
   Search, 
   Bell, 
   User, 
@@ -9,11 +8,11 @@ import {
   ShieldCheck, 
   ChevronDown, 
   X,
-  Play,
-  RotateCcw
+  LogOut,
 } from 'lucide-react';
 import { useApp, AppTab } from '../../context/AppContext';
 import { UserRole } from '../../types';
+import { ScrapLinkLogo } from '../ui/ScrapLinkLogo';
 
 interface NavbarProps {
   onOpenAuth: () => void;
@@ -23,154 +22,130 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
   const { 
     role, 
     setRole, 
+    currentUser,
+    logout,
     activeTab, 
     setActiveTab, 
     notifications, 
     viewWasteDetails,
-    runNextDemoStep,
-    resetDemoSimulation,
-    demoStep,
-    demoActive
   } = useApp();
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
   const [quickSearchInput, setQuickSearchInput] = useState('');
 
-  const handleQuickSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleQuickSearch = (event: React.FormEvent) => {
+    event.preventDefault();
     if (quickSearchInput.trim()) {
       viewWasteDetails(quickSearchInput.trim().toUpperCase());
       setQuickSearchInput('');
     }
   };
 
-  const navLinks: { id: AppTab; label: string }[] = [
-    { id: 'landing', label: 'Overview' },
-    { id: 'schedule', label: 'Book Pickup' },
-    { id: 'trace', label: 'Traceability Ledger' },
-    { id: 'rates', label: 'Mandi Rates' },
-    { id: 'impact', label: 'Live Telemetry' },
-  ];
+  // Dynamically compute navigation links based on active role
+  const getNavLinks = (): { id: AppTab; label: string }[] => {
+    if (role === 'household') {
+      return [
+        { id: 'customer', label: 'My Dashboard' },
+        { id: 'schedule', label: 'Book Pickup' },
+        { id: 'rates', label: 'Rates' },
+        { id: 'trace', label: 'Track' },
+        { id: 'landing', label: 'Home' }
+      ];
+    }
+    if (role === 'collector') {
+      return [
+        { id: 'collector', label: 'Pickup Queue' },
+        { id: 'identity', label: 'Identity' },
+        { id: 'rates', label: 'Rates' },
+        { id: 'trace', label: 'Track' },
+        { id: 'landing', label: 'Home' }
+      ];
+    }
+    if (role === 'admin') {
+      return [
+        { id: 'admin', label: 'Overview' },
+        { id: 'impact', label: 'Impact' },
+        { id: 'trace', label: 'Track' },
+        { id: 'landing', label: 'Home' }
+      ];
+    }
+    if (role === 'recycler') {
+      return [
+        { id: 'recycler', label: 'Batches' },
+        { id: 'trace', label: 'Track' },
+        { id: 'landing', label: 'Home' }
+      ];
+    }
+    return [
+      { id: 'landing', label: 'Overview' },
+      { id: 'schedule', label: 'Book Pickup' },
+      { id: 'rates', label: 'Rates' },
+      { id: 'impact', label: 'Impact' },
+      { id: 'trace', label: 'Track' }
+    ];
+  };
+
+  const navLinks = getNavLinks();
 
   const roleMeta: Record<UserRole, { label: string; icon: React.ReactNode; badgeColor: string }> = {
-    household: { label: 'Household', icon: <User className="w-3.5 h-3.5" />, badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
-    collector: { label: 'Collector Partner', icon: <Truck className="w-3.5 h-3.5" />, badgeColor: 'bg-teal-50 text-teal-800 border-teal-200' },
-    recycler: { label: 'Recycler Hub', icon: <Building2 className="w-3.5 h-3.5" />, badgeColor: 'bg-indigo-50 text-indigo-800 border-indigo-200' },
-    admin: { label: 'Municipal Officer', icon: <ShieldCheck className="w-3.5 h-3.5" />, badgeColor: 'bg-slate-100 text-slate-800 border-slate-300' },
+    household: {
+      label: 'Customer / Seller',
+      icon: <User className="w-3.5 h-3.5" />,
+      badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    },
+    collector: {
+      label: 'Collector Partner',
+      icon: <Truck className="w-3.5 h-3.5" />,
+      badgeColor: 'bg-teal-50 text-teal-800 border-teal-200',
+    },
+    recycler: {
+      label: 'Recycler Hub',
+      icon: <Building2 className="w-3.5 h-3.5" />,
+      badgeColor: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+    },
+    admin: {
+      label: 'Municipal Admin',
+      icon: <ShieldCheck className="w-3.5 h-3.5" />,
+      badgeColor: 'bg-purple-50 text-purple-800 border-purple-200',
+    },
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90">
-      
-      {/* Top Thin Platform Tutorial Bar */}
-      <div className="bg-slate-950 text-slate-300 text-[11px] py-1 px-4 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="inline-flex items-center px-1.5 py-0.2 rounded font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px]">
-              Platform Tutorial
-            </span>
-            <span className="hidden sm:inline text-slate-400">
-              Interactive Guide: Follow how materials move from household to verified reprocessor
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-3 text-[11px]">
-            <button
-              onClick={runNextDemoStep}
-              className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white font-medium transition-colors cursor-pointer"
-            >
-              <Play className="w-3 h-3 fill-white" />
-              <span>{demoActive ? `Tutorial Step ${demoStep}/5` : 'Start Platform Tutorial'}</span>
-            </button>
-            <button
-              onClick={resetDemoSimulation}
-              className="hidden md:inline-flex items-center space-x-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
-              title="Reset tutorial"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <header className="sticky top-0 z-40 border-b border-[#dfe5dc] bg-[#f7f7f2]/95 backdrop-blur-md">
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
           
-          {/* Brand Logo */}
+          {/* Logo & Primary Nav */}
           <div className="flex items-center space-x-6">
-            <button 
-              onClick={() => setActiveTab('landing')}
-              className="flex items-center space-x-2 text-left group cursor-pointer focus:outline-hidden"
+            <button
+              type="button"
+              onClick={() => setActiveTab(currentUser ? (currentUser.role === 'household' ? 'customer' : currentUser.role) : 'landing')}
+              className="group flex cursor-pointer items-center space-x-2 text-left focus:outline-hidden"
             >
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-700 via-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-xs border border-emerald-400/40 group-hover:scale-105 group-hover:shadow-emerald-500/20 group-hover:shadow-md transition-all">
-                <Recycle className="w-4 h-4 text-emerald-50" />
-              </div>
-              <div className="flex items-baseline space-x-1.5">
-                <span className="text-base font-bold tracking-tight text-slate-900">
-                  Kabadiwala<span className="text-emerald-700 font-extrabold">Connect</span>
-                </span>
-                <span className="text-[10px] font-mono text-slate-600 uppercase font-semibold">
-                  v2.6
-                </span>
-              </div>
+              <ScrapLinkLogo />
             </button>
 
-            {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-1">
+            {/* Role-Specific Navigation Links */}
+            <nav className="hidden items-center space-x-1 lg:flex">
               {navLinks.map((link) => {
                 const isActive = activeTab === link.id;
                 return (
                   <button
                     key={link.id}
+                    type="button"
                     onClick={() => setActiveTab(link.id)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                      isActive 
-                        ? 'bg-slate-100 text-slate-900' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    className={`cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      isActive
+                        ? 'bg-slate-100 text-slate-900'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
                     {link.label}
                   </button>
                 );
               })}
-
-              <div className="h-3.5 w-px bg-slate-200 mx-1.5" />
-
-              <button
-                onClick={() => setActiveTab('collector')}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  activeTab === 'collector' || activeTab === 'identity'
-                    ? 'bg-teal-50 text-teal-800 font-semibold'
-                    : 'text-slate-500 hover:text-teal-700'
-                }`}
-              >
-                Collector App
-              </button>
-
-              <button
-                onClick={() => setActiveTab('recycler')}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  activeTab === 'recycler'
-                    ? 'bg-indigo-50 text-indigo-800 font-semibold'
-                    : 'text-slate-500 hover:text-indigo-700'
-                }`}
-              >
-                Recycler Portal
-              </button>
-
-              <button
-                onClick={() => setActiveTab('admin')}
-                className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                  activeTab === 'admin'
-                    ? 'bg-purple-50 text-purple-800 font-semibold'
-                    : 'text-slate-400 hover:text-purple-700'
-                }`}
-              >
-                Municipal
-              </button>
             </nav>
           </div>
 
@@ -178,108 +153,150 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
           <div className="flex items-center space-x-2.5">
             
             {/* Quick Waste ID Search */}
-            <form onSubmit={handleQuickSearch} className="hidden md:flex relative items-center">
+            <form onSubmit={handleQuickSearch} className="relative hidden items-center md:flex">
               <input
                 type="text"
-                placeholder="Track ID e.g. KC-2026..."
+                placeholder="Collection ID"
                 value={quickSearchInput}
                 onChange={(e) => setQuickSearchInput(e.target.value)}
-                className="w-40 lg:w-44 pl-7 pr-2.5 py-1 text-xs font-mono bg-slate-100 border border-slate-200 rounded-lg focus:outline-hidden focus:bg-white focus:border-slate-400 transition-all placeholder:text-slate-400"
+                className="w-36 lg:w-44 rounded-lg border border-[#dfe5dc] bg-white py-2 pl-7 pr-2.5 text-xs font-mono transition-all placeholder:text-slate-400 focus:border-[#5b7c67] focus:outline-hidden"
               />
-              <Search className="w-3 h-3 text-slate-400 absolute left-2.5 pointer-events-none" />
+              <Search className="pointer-events-none absolute left-2.5 h-3 w-3 text-slate-400" />
             </form>
 
-            {/* Notifications Bell */}
+            {/* Notifications */}
             <div className="relative">
               <button
+                type="button"
                 onClick={() => setShowNotifications(!showNotifications)}
-                className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors relative cursor-pointer"
-                title="Notifications"
+                className="relative cursor-pointer rounded-xl p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
+                aria-label="Notifications"
               >
-                <Bell className="w-4 h-4" />
+                <Bell className="h-4 w-4" />
                 {notifications.length > 0 && (
-                  <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                  <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 )}
               </button>
 
-              {/* Notification Popover */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-lg border border-slate-200 py-3 z-50 animate-fadeIn">
-                  <div className="px-4 pb-2 border-b border-slate-100 flex items-center justify-between">
-                    <span className="font-semibold text-[11px] uppercase tracking-wider text-slate-500">
-                      System Event Ledger
+                <div className="absolute right-0 z-50 mt-2 w-80 rounded-2xl border border-slate-200 bg-white py-3 shadow-lg">
+                  <div className="flex items-center justify-between border-b border-slate-100 px-4 pb-2">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      Live Operational Events
                     </span>
-                    <button 
+                    <button
+                      type="button"
                       onClick={() => setShowNotifications(false)}
-                      className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="cursor-pointer text-slate-400 hover:text-slate-600"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
-                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-50">
-                    {notifications.map((n) => (
-                      <div key={n.id} className="p-3 hover:bg-slate-50 transition-colors">
-                        <div className="flex items-start justify-between">
-                          <p className="text-xs font-semibold text-slate-800">{n.title}</p>
-                          <span className="text-[10px] text-slate-400">{n.time}</span>
+
+                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                    {notifications.length === 0 ? (
+                      <div className="px-4 py-6 text-xs text-slate-500">No events logged yet.</div>
+                    ) : (
+                      notifications.map((notification) => (
+                        <div key={notification.id} className="px-4 py-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="text-xs font-semibold text-slate-900">{notification.title}</div>
+                              <div className="mt-1 text-[11px] text-slate-600">{notification.message}</div>
+                            </div>
+                            <span className="text-[10px] text-slate-400">{notification.time}</span>
+                          </div>
                         </div>
-                        <p className="text-xs text-slate-600 mt-0.5 leading-snug">{n.message}</p>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Role Switcher Pill */}
+            {/* Active Portal Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-                className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${roleMeta[role].badgeColor}`}
+                type="button"
+                onClick={() => setShowRoleDropdown((current) => !current)}
+                className={`inline-flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${roleMeta[role].badgeColor}`}
               >
                 {roleMeta[role].icon}
-                <span className="hidden sm:inline">{roleMeta[role].label}</span>
-                <span className="sm:hidden capitalize">{role}</span>
-                <ChevronDown className="w-3 h-3 opacity-60" />
+                <span className="hidden sm:inline">
+                  {currentUser ? currentUser.name.split(' ')[0] : roleMeta[role].label}
+                </span>
+                <ChevronDown className="h-3 w-3 opacity-60" />
               </button>
 
               {showRoleDropdown && (
-                <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-lg border border-slate-200 py-2 z-50">
-                  <div className="px-3 py-1 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                    Switch Active Role:
+                <div className="absolute right-0 z-50 mt-2 w-60 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl">
+                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Switch Active Portal:
                   </div>
-                  {(['household', 'collector', 'recycler', 'admin'] as UserRole[]).map((r) => (
+                  {(['household', 'collector', 'admin', 'recycler'] as UserRole[]).map((roleOption) => (
                     <button
-                      key={r}
+                      key={roleOption}
+                      type="button"
                       onClick={() => {
-                        setRole(r);
+                        setRole(roleOption);
                         setShowRoleDropdown(false);
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs flex items-center space-x-2 transition-colors cursor-pointer ${
-                        role === r ? 'bg-slate-100 font-semibold text-slate-900' : 'text-slate-700 hover:bg-slate-50'
+                      className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs transition-colors cursor-pointer ${
+                        role === roleOption ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-600 hover:bg-slate-50'
                       }`}
                     >
-                      <div className={`p-1 rounded ${roleMeta[r].badgeColor}`}>
-                        {roleMeta[r].icon}
-                      </div>
-                      <div className="flex-1 truncate">
-                        <div className="font-semibold">{roleMeta[r].label}</div>
-                      </div>
+                      <span className="flex items-center gap-2">
+                        {roleMeta[roleOption].icon}
+                        <span>{roleMeta[roleOption].label}</span>
+                      </span>
+                      {role === roleOption && (
+                        <span className="text-[10px] text-emerald-700 font-mono">Active</span>
+                      )}
                     </button>
                   ))}
+
+                  {currentUser && (
+                    <div className="mt-2 pt-2 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          logout();
+                          setShowRoleDropdown(false);
+                        }}
+                        className="flex w-full items-center space-x-2 rounded-xl px-3 py-2 text-xs text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer font-medium"
+                      >
+                        <LogOut className="w-3.5 h-3.5" />
+                        <span>Sign Out of Portal</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
 
-            {/* Auth / Login Button */}
-            <button
-              onClick={onOpenAuth}
-              className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition-colors cursor-pointer"
-            >
-              Sign In
-            </button>
+            {/* Portal Login / Switch Button */}
+            {currentUser ? (
+              <button
+                type="button"
+                onClick={logout}
+                className="hidden sm:inline-flex items-center space-x-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-100 cursor-pointer"
+                title="Sign out"
+              >
+                <LogOut className="w-3 h-3 text-slate-500" />
+                <span>Sign Out</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenAuth}
+                className="rounded-lg bg-[#173d35] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#285247] cursor-pointer"
+              >
+                Sign in
+              </button>
+            )}
 
           </div>
+
         </div>
       </div>
     </header>

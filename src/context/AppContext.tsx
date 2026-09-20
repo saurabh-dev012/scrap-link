@@ -12,16 +12,13 @@ import {
   TraceabilityEvent 
 } from '../types';
 import { 
-  MOCK_PICKUPS, 
   MOCK_COLLECTORS, 
   MOCK_RECYCLERS, 
-  MOCK_RECYCLING_BATCHES, 
-  MOCK_MANDI_RATES, 
-  INITIAL_IMPACT_STATS 
 } from '../data/mockData';
 
 export type AppTab = 
   | 'landing' 
+  | 'customer'
   | 'schedule' 
   | 'collector' 
   | 'trace' 
@@ -30,6 +27,17 @@ export type AppTab =
   | 'rates' 
   | 'admin' 
   | 'identity';
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  phone: string;
+  role: UserRole;
+  subtitle?: string;
+  ward?: string;
+  photoUrl?: string;
+  eShramNo?: string;
+}
 
 interface NotificationItem {
   id: string;
@@ -42,6 +50,9 @@ interface NotificationItem {
 interface AppContextType {
   role: UserRole;
   setRole: (role: UserRole) => void;
+  currentUser: AuthUser | null;
+  login: (user: AuthUser) => void;
+  logout: () => void;
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
   searchWasteId: string;
@@ -91,13 +102,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [role, setRoleState] = useState<UserRole>(() => {
     return (localStorage.getItem('kc_role') as UserRole) || 'household';
   });
-  const [activeTab, setActiveTabState] = useState<AppTab>('landing');
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    const saved = localStorage.getItem('kc_user');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { return null; }
+    }
+    return null;
+  });
+  const [activeTab, setActiveTabState] = useState<AppTab>(() => {
+    return currentUser ? (currentUser.role === 'household' ? 'customer' : currentUser.role) : 'landing';
+  });
   const [searchWasteId, setSearchWasteId] = useState<string>('KC-2026-004821');
 
   // Load persistent or mock state
   const [pickups, setPickups] = useState<PickupRequest[]>(() => {
-    const saved = localStorage.getItem('kc_pickups');
-    return saved ? JSON.parse(saved) : MOCK_PICKUPS;
+    const saved = localStorage.getItem('kc_pickups_v2');
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [collectors, setCollectors] = useState<Collector[]>(() => {
@@ -108,26 +128,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [recyclers] = useState<Recycler[]>(MOCK_RECYCLERS);
 
   const [batches, setBatches] = useState<RecyclingBatch[]>(() => {
-    const saved = localStorage.getItem('kc_batches');
-    return saved ? JSON.parse(saved) : MOCK_RECYCLING_BATCHES;
+    const saved = localStorage.getItem('kc_batches_v2');
+    return saved ? JSON.parse(saved) : [];
   });
 
-  const [mandiRates] = useState<MandiRate[]>(MOCK_MANDI_RATES);
+  const [mandiRates] = useState<MandiRate[]>([]);
 
-  const [impactStats, setImpactStats] = useState<ImpactStats>(() => {
-    const saved = localStorage.getItem('kc_impact');
-    return saved ? JSON.parse(saved) : INITIAL_IMPACT_STATS;
-  });
+  // Dynamically calculate operational stats from actual state without hardcoded fake numbers
+  const impactStats: ImpactStats = React.useMemo(() => {
+    const completedList = pickups.filter(p => p.status === 'collected' || p.status === 'at_sorting' || p.status === 'recycled');
+    const totalRecoveredKg = completedList.reduce((acc, p) => acc + (p.actualWeightKg || p.totalEstimatedKg || 0), 0);
+    const totalEarningsRupees = completedList.reduce((acc, p) => acc + (p.actualPaidAmount || p.totalEstimatedValue || 0), 0);
+    const co2AvoidedKg = Math.round(totalRecoveredKg * 1.35);
+    const trees = Math.max(1, Math.round(totalRecoveredKg / 25));
+    const households = new Set(pickups.map(p => p.householdPhone)).size || completedList.length;
+    const landfillM3 = Math.round((totalRecoveredKg * 0.0031) * 10) / 10;
+    
+    return {
+      totalWasteRecoveredKg: Math.round(totalRecoveredKg * 10) / 10,
+      totalCollectorsConnected: collectors.length,
+      totalVerifiedRecyclers: recyclers.length,
+      totalHouseholdsServed: households,
+      totalPcrPelletsSuppliedKg: Math.round(totalRecoveredKg * 0.72),
+      totalPickupsCompleted: completedList.length,
+      totalCollectorEarningsRupees: totalEarningsRupees,
+      estimatedCo2AvoidedKg: co2AvoidedKg,
+      landfillVolumeSavedM3: landfillM3,
+      treesEquivalentSaved: trees,
+      activeWardsCovered: new Set(pickups.map(p => p.ward)).size || 4
+    };
+  }, [pickups, collectors.length, recyclers.length]);
 
-  const [notifications, setNotifications] = useState<NotificationItem[]>([
-    {
-      id: 'n-1',
-      title: 'Welcome to Kabadiwala Connect',
-      message: 'Explore the digital recycling ecosystem. Use the interactive tutorial above to follow the full circular lifecycle.',
-      time: 'Just now',
-      type: 'info'
-    }
-  ]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
 
   // Active user contexts
   const activeCollector = collectors[0]; // Ramesh Kumar
@@ -143,7 +175,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [role]);
 
   useEffect(() => {
-    localStorage.setItem('kc_pickups', JSON.stringify(pickups));
+    if (currentUser) {
+      localStorage.setItem('kc_user', JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem('kc_user');
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    localStorage.setItem('kc_pickups_v2', JSON.stringify(pickups));
   }, [pickups]);
 
   useEffect(() => {
@@ -151,18 +191,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [collectors]);
 
   useEffect(() => {
-    localStorage.setItem('kc_batches', JSON.stringify(batches));
+    localStorage.setItem('kc_batches_v2', JSON.stringify(batches));
   }, [batches]);
 
-  useEffect(() => {
-    localStorage.setItem('kc_impact', JSON.stringify(impactStats));
-  }, [impactStats]);
+  const login = (user: AuthUser) => {
+    setCurrentUser(user);
+    setRoleState(user.role);
+    if (user.role === 'household') {
+      setActiveTabState('customer');
+    } else if (user.role === 'collector') {
+      setActiveTabState('collector');
+    } else if (user.role === 'recycler') {
+      setActiveTabState('recycler');
+    } else if (user.role === 'admin') {
+      setActiveTabState('admin');
+    }
+    addNotification('Authentication Successful', `Welcome, ${user.name} (${user.role.toUpperCase()} Portal).`, 'success');
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    setRoleState('household');
+    setActiveTabState('landing');
+    addNotification('Logged Out', 'Returned to public platform overview.', 'info');
+  };
 
   const setRole = (newRole: UserRole) => {
     setRoleState(newRole);
-    // Auto-navigate to intuitive screen for the role
-    if (newRole === 'household' && activeTab !== 'schedule' && activeTab !== 'landing' && activeTab !== 'trace') {
-      setActiveTabState('schedule');
+    if (newRole === 'household') {
+      setActiveTabState('customer');
     } else if (newRole === 'collector') {
       setActiveTabState('collector');
     } else if (newRole === 'recycler') {
@@ -249,7 +306,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createdAt: now,
       scheduledAt: `${household.date}T10:00:00Z`,
       verificationPin: pin,
-      qrCodeData: `https://kabadiwalaconnect.org/track/${newId}`,
+      qrCodeData: `https://scraplink.app/track/${newId}`,
       cryptographicHash: `0x${Array.from({length: 64}, () => Math.floor(Math.random()*16).toString(16)).join('')}`,
       timeline: initialTimeline
     };
@@ -285,7 +342,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         location: `${targetCollector.currentLocation.areaName}`,
         gpsCoords: { lat: targetCollector.currentLocation.lat, lng: targetCollector.currentLocation.lng },
         actorName: targetCollector.name,
-        actorRole: 'Verified Kabadiwala Partner',
+        actorRole: 'Verified Collection Partner',
         verifiedByBadge: 'e-Shram Registered',
         hashDigest: `0x${Math.random().toString(16).substring(2, 10)}...${Math.random().toString(16).substring(2, 6)}`
       };
@@ -361,17 +418,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         collectedAt: new Date().toISOString(),
         timeline: [...p.timeline, event, sortingEvent]
       };
-    }));
-
-    // Update impact stats
-    const co2Saved = Math.round(measuredKg * 1.35);
-    setImpactStats(prev => ({
-      ...prev,
-      totalWasteRecoveredKg: prev.totalWasteRecoveredKg + measuredKg,
-      estimatedCo2AvoidedKg: prev.estimatedCo2AvoidedKg + co2Saved,
-      totalCollectorEarningsRupees: prev.totalCollectorEarningsRupees + paidAmount,
-      totalHouseholdsServed: prev.totalHouseholdsServed + 1,
-      treesEquivalentSaved: prev.treesEquivalentSaved + Math.max(1, Math.round(measuredKg / 25))
     }));
 
     // Update active collector earnings
@@ -521,10 +567,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const resetDemoSimulation = () => {
-    setPickups(MOCK_PICKUPS);
+    setPickups([]);
     setCollectors(MOCK_COLLECTORS);
-    setBatches(MOCK_RECYCLING_BATCHES);
-    setImpactStats(INITIAL_IMPACT_STATS);
+    setBatches([]);
     setDemoStep(0);
     setDemoActive(false);
     setRole('household');
@@ -538,6 +583,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       value={{
         role,
         setRole,
+        currentUser,
+        login,
+        logout,
         activeTab,
         setActiveTab,
         searchWasteId,
@@ -578,4 +626,3 @@ export const useApp = () => {
   }
   return context;
 };
-

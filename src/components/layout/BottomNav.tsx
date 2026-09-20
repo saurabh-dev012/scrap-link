@@ -1,48 +1,71 @@
 import React from 'react';
-import { Home, Truck, Search, Activity, User, Sparkles } from 'lucide-react';
-import { useApp, AppTab } from '../../context/AppContext';
+import { Home, Truck, Search, Activity, User, Coins, ShieldCheck, Building2, LayoutDashboard } from 'lucide-react';
+import { AppTab, useApp } from '../../context/AppContext';
 
 interface BottomNavProps {
   onOpenAuth: () => void;
 }
 
-export const BottomNav: React.FC<BottomNavProps> = ({ onOpenAuth }) => {
+export const BottomNav: React.FC<BottomNavProps> = () => {
   const { activeTab, setActiveTab, role } = useApp();
 
-  const getProfileTab = (): AppTab => {
-    if (role === 'collector') return 'identity';
-    if (role === 'recycler') return 'recycler';
-    if (role === 'admin') return 'admin';
-    return 'collector';
+  const getRoleTabs = (): { id: AppTab; label: string; icon: React.ReactNode }[] => {
+    if (role === 'household') {
+      return [
+        { id: 'customer', label: 'Dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+        { id: 'schedule', label: 'Pickup', icon: <Truck className="h-4 w-4" /> },
+        { id: 'rates', label: 'Rates', icon: <Coins className="h-4 w-4" /> },
+        { id: 'trace', label: 'Trace', icon: <Search className="h-4 w-4" /> },
+        { id: 'landing', label: 'Overview', icon: <Home className="h-4 w-4" /> },
+      ];
+    }
+    if (role === 'collector') {
+      return [
+        { id: 'collector', label: 'Queue', icon: <Truck className="h-4 w-4" /> },
+        { id: 'identity', label: 'Green ID', icon: <User className="h-4 w-4" /> },
+        { id: 'rates', label: 'Rates', icon: <Coins className="h-4 w-4" /> },
+        { id: 'trace', label: 'Trace', icon: <Search className="h-4 w-4" /> },
+        { id: 'landing', label: 'Overview', icon: <Home className="h-4 w-4" /> },
+      ];
+    }
+    if (role === 'admin') {
+      return [
+        { id: 'admin', label: 'Admin', icon: <ShieldCheck className="h-4 w-4" /> },
+        { id: 'impact', label: 'Telemetry', icon: <Activity className="h-4 w-4" /> },
+        { id: 'trace', label: 'Ledger', icon: <Search className="h-4 w-4" /> },
+        { id: 'rates', label: 'Rates', icon: <Coins className="h-4 w-4" /> },
+        { id: 'landing', label: 'Overview', icon: <Home className="h-4 w-4" /> },
+      ];
+    }
+    return [
+      { id: 'landing', label: 'Home', icon: <Home className="h-4 w-4" /> },
+      { id: 'schedule', label: 'Pickup', icon: <Truck className="h-4 w-4" /> },
+      { id: 'rates', label: 'Rates', icon: <Coins className="h-4 w-4" /> },
+      { id: 'impact', label: 'Telemetry', icon: <Activity className="h-4 w-4" /> },
+      { id: 'trace', label: 'Trace', icon: <Search className="h-4 w-4" /> },
+    ];
   };
 
-  const tabs: { id: AppTab; label: string; icon: React.ReactNode; isAction?: boolean }[] = [
-    { id: 'landing', label: 'Home', icon: <Home className="w-5 h-5" /> },
-    { id: 'schedule', label: 'Pickup', icon: <Truck className="w-5 h-5" /> },
-    { id: 'trace', label: 'Track', icon: <Search className="w-5 h-5" /> },
-    { id: 'impact', label: 'Telemetry', icon: <Activity className="w-5 h-5" /> },
-    { id: getProfileTab(), label: 'Profile', icon: <User className="w-5 h-5" /> },
-  ];
+  const tabs = getRoleTabs();
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-lg border-t border-slate-200/90 shadow-lg px-2 py-1.5">
-      <div className="grid grid-cols-5 gap-1 items-center max-w-md mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200/90 bg-white/95 px-2 py-1.5 shadow-lg backdrop-blur-lg md:hidden">
+      <div className="mx-auto grid max-w-md grid-cols-5 items-center gap-1">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-col items-center justify-center py-1 rounded-lg transition-all cursor-pointer ${
-                isActive 
-                  ? 'text-brand-600 font-semibold scale-105' 
-                  : 'text-slate-500 hover:text-slate-800'
+              className={`flex cursor-pointer flex-col items-center justify-center rounded-xl py-1 transition-all ${
+                isActive ? 'scale-105 font-bold text-emerald-700' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
-              <div className={`p-1 rounded-full ${isActive ? 'bg-brand-50 text-brand-600' : ''}`}>
+              <div className={`rounded-xl p-1 ${isActive ? 'bg-emerald-50 text-emerald-700' : ''}`}>
                 {tab.icon}
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight">{tab.label}</span>
+              <span className="mt-0.5 text-[10px] tracking-tight">{tab.label}</span>
             </button>
           );
         })}
@@ -50,4 +73,3 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onOpenAuth }) => {
     </div>
   );
 };
-

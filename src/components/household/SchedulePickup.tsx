@@ -454,7 +454,7 @@ export const SchedulePickup: React.FC = () => {
                 </div>
                 <h4 className="font-bold text-slate-800 text-base">Scanning Ward 31 Radio Network...</h4>
                 <p className="text-xs text-slate-500">
-                  Detecting active verified kabadiwala loaders within 3 km.
+                  Finding available verified collection partners nearby.
                 </p>
               </div>
             ) : (
@@ -646,4 +646,3 @@ export const SchedulePickup: React.FC = () => {
     </div>
   );
 };
-

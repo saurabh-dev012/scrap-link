@@ -4,14 +4,9 @@ import { useApp } from './context/AppContext';
 import { Navbar } from './components/layout/Navbar';
 import { BottomNav } from './components/layout/BottomNav';
 import { Footer } from './components/layout/Footer';
-import { DemoController } from './components/layout/DemoController';
 import { HeroSection } from './components/landing/HeroSection';
-import { MandiTicker } from './components/landing/MandiTicker';
 import { HowItWorks } from './components/landing/HowItWorks';
-import { ModernBentoFeatures } from './components/landing/ModernBentoFeatures';
-import { LiveTelemetryPreview } from './components/landing/LiveTelemetryPreview';
-import { DignitySpotlight } from './components/landing/DignitySpotlight';
-import { TrustSection } from './components/landing/TrustSection';
+import { CustomerDashboard } from './components/household/CustomerDashboard';
 import { SchedulePickup } from './components/household/SchedulePickup';
 import { CollectorDashboard } from './components/collector/CollectorDashboard';
 import { DigitalIdentityCard } from './components/collector/DigitalIdentityCard';
@@ -43,12 +38,19 @@ export const MainContent: React.FC = () => {
               transition={{ duration: 0.25 }}
             >
               <HeroSection />
-              <MandiTicker />
               <HowItWorks />
-              <ModernBentoFeatures />
-              <LiveTelemetryPreview />
-              <DignitySpotlight />
-              <TrustSection />
+            </motion.div>
+          )}
+
+          {activeTab === 'customer' && (
+            <motion.div
+              key="customer"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25 }}
+            >
+              <CustomerDashboard />
             </motion.div>
           )}
 
@@ -149,9 +151,6 @@ export const MainContent: React.FC = () => {
           )}
         </AnimatePresence>
       </main>
-
-      {/* Floating Interactive Platform Tutorial Controller */}
-      <DemoController />
 
       {/* Footer */}
       <Footer />

@@ -11,14 +11,16 @@ import {
   Check, 
   X, 
   ExternalLink,
-  Sparkles,
   Award,
-  TrendingUp
+  TrendingUp,
+  Scale,
+  Truck
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
+import { IconPlate } from '../ui/IconPlate';
 
 export const AdminDashboard: React.FC = () => {
-  const { collectors, recyclers, pickups, addNotification } = useApp();
+  const { collectors, recyclers, pickups, addNotification, setActiveTab, viewWasteDetails } = useApp();
 
   const [pendingKYC, setPendingKYC] = useState([
     {
@@ -53,75 +55,110 @@ export const AdminDashboard: React.FC = () => {
     addNotification('KYC Returned for Correction', `${name}'s documents flagged for re-upload.`, 'alert');
   };
 
+  // Real dynamic calculations from active state
+  const totalIntakeKg = pickups.reduce((acc, p) => acc + (p.actualWeightKg || (p.status !== 'requested' ? p.totalEstimatedKg : 0)), 0);
+  const activePickupsToday = pickups.filter(p => p.status === 'requested' || p.status === 'in_transit').length;
+  const totalPayoutsRupees = pickups.reduce((acc, p) => acc + (p.actualPaidAmount || 0), 0);
+
   return (
     <div className="py-8 bg-slate-50 min-h-[calc(100vh-4rem)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Header */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center border-2 border-purple-200 shadow-xs">
-              <ShieldCheck className="w-8 h-8" />
-            </div>
+            <IconPlate 
+              icon={<ShieldCheck className="w-8 h-8" />} 
+              variant="purple" 
+              size="xl" 
+            />
 
             <div>
               <div className="flex items-center space-x-2">
                 <h1 className="text-2xl font-black text-slate-900">
-                  Municipal Corporation Admin Oversight
+                  Municipal Corporation Urban Local Body Oversight
                 </h1>
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
-                  Urban Local Body (ULB) Level
+                  SBM-Urban 2.0
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Centralized oversight for collector formalization, recycler compliance, and ward circularity quotas.
+                Centralized civic oversight for collector formalization, calibrated scale accuracy, and ward circularity quotas.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 text-xs font-mono text-slate-600 bg-slate-100 px-3 py-2 rounded-xl">
+          <div className="flex items-center space-x-2 text-xs font-mono text-slate-600 bg-slate-100 px-3.5 py-2 rounded-xl border border-slate-200">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>National Circular Economy Operations Center</span>
+            <span>National Circular Operations Center • Live Sync</span>
           </div>
         </div>
 
-        {/* 4 Stats Cards */}
+        {/* 4 Real-time Dynamic Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-            <span className="text-xs font-medium text-slate-500 block">Verified Collectors</span>
-            <div className="text-2xl font-black text-slate-900 mt-1">
-              {collectors.length + 319}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+            <IconPlate 
+              icon={<Users className="w-4 h-4" />} 
+              variant="teal" 
+              size="md" 
+            />
+            <div>
+              <div className="text-2xl font-black text-slate-900 font-mono">
+                {collectors.length}
+              </div>
+              <span className="text-xs font-bold text-teal-700">Verified Fleet Partners</span>
             </div>
-            <span className="text-[11px] text-emerald-600 font-medium">100% e-Shram registered</span>
+            <span className="text-[11px] text-slate-400 font-mono">100% e-Shram & Aadhaar authenticated</span>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-            <span className="text-xs font-medium text-slate-500 block">CPCB Recyclers</span>
-            <div className="text-2xl font-black text-indigo-600 mt-1">
-              {recyclers.length + 43}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+            <IconPlate 
+              icon={<Scale className="w-4 h-4" />} 
+              variant="emerald" 
+              size="md" 
+            />
+            <div>
+              <div className="text-2xl font-black text-slate-900 font-mono">
+                {totalIntakeKg.toFixed(1)} <span className="text-xs font-normal text-slate-500 font-sans">kg</span>
+              </div>
+              <span className="text-xs font-bold text-emerald-700">Total Verified Intake</span>
             </div>
-            <span className="text-[11px] text-slate-500">Zero non-compliance flags</span>
+            <span className="text-[11px] text-slate-400 font-mono">Real-time doorstep scale logs</span>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-            <span className="text-xs font-medium text-slate-500 block">Pending KYC Approvals</span>
-            <div className="text-2xl font-black text-amber-500 mt-1">
-              {pendingKYC.length}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+            <IconPlate 
+              icon={<Truck className="w-4 h-4" />} 
+              variant="amber" 
+              size="md" 
+            />
+            <div>
+              <div className="text-2xl font-black text-slate-900 font-mono">
+                {activePickupsToday}
+              </div>
+              <span className="text-xs font-bold text-amber-700">Active Doorstep Pickups</span>
             </div>
-            <span className="text-[11px] text-amber-700 font-medium">Aadhaar verified queue</span>
+            <span className="text-[11px] text-slate-400 font-mono">Currently assigned or in transit</span>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-            <span className="text-xs font-medium text-slate-500 block">Citizen Disputes</span>
-            <div className="text-2xl font-black text-emerald-600 mt-1">
-              0 Open
+          <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+            <IconPlate 
+              icon={<Building2 className="w-4 h-4" />} 
+              variant="indigo" 
+              size="md" 
+            />
+            <div>
+              <div className="text-2xl font-black text-slate-900 font-mono">
+                {recyclers.length}
+              </div>
+              <span className="text-xs font-bold text-indigo-700">Authorized Reprocessors</span>
             </div>
-            <span className="text-[11px] text-slate-500">Zero scale weight discrepancies</span>
+            <span className="text-[11px] text-slate-400 font-mono">CPCB verified secondary mills</span>
           </div>
         </div>
 
         {/* Collector KYC Verification Queue */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-slate-900">
@@ -131,7 +168,7 @@ export const AdminDashboard: React.FC = () => {
                 Grant informal waste practitioners legal recognition, Ayushman Bharat access, and certified IoT scales.
               </p>
             </div>
-            <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+            <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 font-mono">
               {pendingKYC.length} Pending Review
             </span>
           </div>
@@ -153,18 +190,18 @@ export const AdminDashboard: React.FC = () => {
                       <h4 className="font-bold text-slate-900 text-sm">{item.name}</h4>
                       <span className="text-xs text-slate-500">• {item.ward}</span>
                     </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 pt-1">
-                      <span>Vehicle: <strong>{item.vehicle}</strong></span>
-                      <span>Aadhaar: <strong className="font-mono">{item.aadhaarNo}</strong></span>
-                      <span>e-Shram: <strong className="font-mono">{item.eShramNo}</strong></span>
-                      <span>Submitted: {item.submittedAt}</span>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 pt-1 font-mono">
+                      <span>Vehicle: <strong className="text-slate-700">{item.vehicle}</strong></span>
+                      <span>Aadhaar: <strong className="text-slate-700">{item.aadhaarNo}</strong></span>
+                      <span>e-Shram: <strong className="text-slate-700">{item.eShramNo}</strong></span>
+                      <span className="font-sans">Submitted: {item.submittedAt}</span>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleApproveKYC(item.id, item.name)}
-                      className="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center space-x-1"
+                      className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs transition-colors cursor-pointer flex items-center space-x-1"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>Approve & Issue ID</span>
@@ -183,14 +220,14 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Recyclers Compliance Directory */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 space-y-4">
+        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
-              <h3 className="text-lg font-bold text-slate-900">Registered Industrial Recyclers</h3>
-              <p className="text-xs text-slate-500">Authorized processing facilities adhering to CPCB zero-landfill standards</p>
+              <h3 className="text-lg font-bold text-slate-900">Authorized Industrial Recyclers</h3>
+              <p className="text-xs text-slate-500">Processing facilities certified by State Pollution Control Boards & CPCB</p>
             </div>
-            <span className="text-xs text-indigo-700 font-semibold bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200">
-              5 Facilities Active
+            <span className="text-xs text-indigo-700 font-semibold bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-200 font-mono">
+              {recyclers.length} Facilities Active
             </span>
           </div>
 
@@ -221,4 +258,3 @@ export const AdminDashboard: React.FC = () => {
     </div>
   );
 };
-
